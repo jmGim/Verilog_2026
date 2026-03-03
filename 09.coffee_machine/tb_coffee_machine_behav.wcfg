@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_coffee_machine_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_coffee_machine" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,318.001 ns"></ZoomEndTime>
+      <Cursor1Time time="300.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="102"></NameColumnWidth>
+      <ValueColumnWidth column_width="62"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="10" />
+   <wvobject fp_name="/tb_coffee_machine/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/coin" type="logic">
+      <obj_property name="ElementShortName">coin</obj_property>
+      <obj_property name="ObjectShortName">coin</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/return_coin_btn" type="logic">
+      <obj_property name="ElementShortName">return_coin_btn</obj_property>
+      <obj_property name="ObjectShortName">return_coin_btn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/coffee_btn" type="logic">
+      <obj_property name="ElementShortName">coffee_btn</obj_property>
+      <obj_property name="ObjectShortName">coffee_btn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/coffee_out" type="logic">
+      <obj_property name="ElementShortName">coffee_out</obj_property>
+      <obj_property name="ObjectShortName">coffee_out</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/coin_val" type="array">
+      <obj_property name="ElementShortName">coin_val[15:0]</obj_property>
+      <obj_property name="ObjectShortName">coin_val[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/seg_en" type="logic">
+      <obj_property name="ElementShortName">seg_en</obj_property>
+      <obj_property name="ObjectShortName">seg_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/coffee_make" type="logic">
+      <obj_property name="ElementShortName">coffee_make</obj_property>
+      <obj_property name="ObjectShortName">coffee_make</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_coffee_machine/coin_return" type="logic">
+      <obj_property name="ElementShortName">coin_return</obj_property>
+      <obj_property name="ObjectShortName">coin_return</obj_property>
+   </wvobject>
+</wave_config>

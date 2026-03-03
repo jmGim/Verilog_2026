@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_button_debounce_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_button_debounce" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="1.291761667 ms"></ZoomStartTime>
+      <ZoomEndTime time="31.041761668 ms"></ZoomEndTime>
+      <Cursor1Time time="6.250095000 ms"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="154"></NameColumnWidth>
+      <ValueColumnWidth column_width="74"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="8" />
+   <wvobject fp_name="/tb_button_debounce/r_clk" type="logic">
+      <obj_property name="ElementShortName">r_clk</obj_property>
+      <obj_property name="ObjectShortName">r_clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/r_reset" type="logic">
+      <obj_property name="ElementShortName">r_reset</obj_property>
+      <obj_property name="ObjectShortName">r_reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/r_btnC" type="logic">
+      <obj_property name="ElementShortName">r_btnC</obj_property>
+      <obj_property name="ObjectShortName">r_btnC</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/u_top_btn/u_button_debounce/o_clean_btn" type="logic">
+      <obj_property name="ElementShortName">o_clean_btn</obj_property>
+      <obj_property name="ObjectShortName">o_clean_btn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/r_led" type="array">
+      <obj_property name="ElementShortName">r_led[1:0]</obj_property>
+      <obj_property name="ObjectShortName">r_led[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/CLK_FREQ" type="array">
+      <obj_property name="ElementShortName">CLK_FREQ[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CLK_FREQ[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/CLK_PERIOD" type="array">
+      <obj_property name="ElementShortName">CLK_PERIOD[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CLK_PERIOD[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_button_debounce/BTN_PRESS_LIMIT" type="array">
+      <obj_property name="ElementShortName">BTN_PRESS_LIMIT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">BTN_PRESS_LIMIT[31:0]</obj_property>
+   </wvobject>
+</wave_config>
