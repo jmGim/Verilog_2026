@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="tb_top_rotary_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="tb_top_rotary" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.091666 us"></ZoomStartTime>
+      <ZoomEndTime time="17.531667 us"></ZoomEndTime>
+      <Cursor1Time time="11.535000 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="98"></NameColumnWidth>
+      <ValueColumnWidth column_width="58"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="13" />
+   <wvobject fp_name="/tb_top_rotary/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/reset" type="logic">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/s1" type="logic">
+      <obj_property name="ElementShortName">s1</obj_property>
+      <obj_property name="ObjectShortName">s1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/s2" type="logic">
+      <obj_property name="ElementShortName">s2</obj_property>
+      <obj_property name="ObjectShortName">s2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/key" type="logic">
+      <obj_property name="ElementShortName">key</obj_property>
+      <obj_property name="ObjectShortName">key</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/clean_s1" type="logic">
+      <obj_property name="ElementShortName">clean_s1</obj_property>
+      <obj_property name="ObjectShortName">clean_s1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/clean_s2" type="logic">
+      <obj_property name="ElementShortName">clean_s2</obj_property>
+      <obj_property name="ObjectShortName">clean_s2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/clean_key" type="logic">
+      <obj_property name="ElementShortName">clean_key</obj_property>
+      <obj_property name="ObjectShortName">clean_key</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/led" type="array">
+      <obj_property name="ElementShortName">led[15:0]</obj_property>
+      <obj_property name="ObjectShortName">led[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/r_direction" type="array">
+      <obj_property name="ElementShortName">r_direction[1:0]</obj_property>
+      <obj_property name="ObjectShortName">r_direction[1:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/r_current_state" type="array">
+      <obj_property name="ElementShortName">r_current_state[1:0]</obj_property>
+      <obj_property name="ObjectShortName">r_current_state[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/r_led_toggle" type="logic">
+      <obj_property name="ElementShortName">r_led_toggle</obj_property>
+      <obj_property name="ObjectShortName">r_led_toggle</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_top_rotary/u_top_rotary/u_rotary/r_counter" type="array">
+      <obj_property name="ElementShortName">r_counter[7:0]</obj_property>
+      <obj_property name="ObjectShortName">r_counter[7:0]</obj_property>
+   </wvobject>
+</wave_config>

@@ -79,6 +79,8 @@ module tb_top_microwave();
             repeat(3) @ (posedge clk);    // 아래 내용을 clk의 상승 엣지 3번 동안 유지
             #1 btn[4] = 0;
             repeat(10) @ (posedge clk);    // 대기 시간 확보
+            #1 btn[2] = 1;
+            repeat(10) @ (posedge clk);    // 대기 시간 확보
         end
     endtask
 
@@ -86,10 +88,10 @@ module tb_top_microwave();
     task t_speedup;
         begin
             @(posedge clk);
-            #1 btn[3]=1; //setup time 확보  
+            #100 btn[3]=1; //setup time 확보  
             // clk posedge 이전 Data 값 안정적으로 있어야 하는 시간 ( posedge clk 전 Data는 먼저 도달해있어야함 ).
             repeat(3) @ (posedge clk);    // 아래 내용을 clk의 상승 엣지 3번 동안 유지
-            #1 btn[3] = 0;
+            #100 btn[3] = 0;
             repeat(10) @ (posedge clk);    // 대기 시간 확보
         end
     endtask
@@ -108,24 +110,20 @@ module tb_top_microwave();
 
 
 
-    task t_timeout_1;
+    task t_timeout;
         begin
             @(posedge clk);
             #1 timeout=1; //setup time 확보  
             // clk posedge 이전 Data 값 안정적으로 있어야 하는 시간 ( posedge clk 전 Data는 먼저 도달해있어야함 ).
             repeat(10) @ (posedge clk);    // 대기 시간 확보
-        end
-    endtask
-
-    task t_timeout_0;
-        begin
-            @(posedge clk);
+             @(posedge clk);
             #1 timeout=0; //setup time 확보  
             // clk posedge 이전 Data 값 안정적으로 있어야 하는 시간 ( posedge clk 전 Data는 먼저 도달해있어야함 ).
             repeat(10) @ (posedge clk);    // 아래 내용을 clk의 상승 엣지 3번 동안 유지
         end
     endtask
 
+  
     
 
 
@@ -161,8 +159,8 @@ module tb_top_microwave();
         t_start();
         t_speedup();
         t_speedup();
-        t_speedup();
-
+        t_timeadd10s();
+        #10000;
 
         // 3.2. 문 닫고 시작(정상) 및 중도 취소
         $display("time : %t Start button click with DOOR CLOSE ... ", $time);
@@ -171,8 +169,10 @@ module tb_top_microwave();
         t_speedup();
         t_speedup();
         t_speedup();
+        t_timeadd10s();
 
         t_cancel();
+        #1000;
 
 
         // 3.3. 조리 완료(정상)
@@ -181,7 +181,7 @@ module tb_top_microwave();
         t_speedup();
         t_speedup();
         t_speedup();
-        t_timeout_1();
+        t_timeout();
 
 
         // 3.4. 조리 중 문 열고 닫은 후 다시 시작(시간 이어서 진행되는 지 확인)
@@ -191,7 +191,8 @@ module tb_top_microwave();
         #100;
         t_close();
         t_start();
-        t_timeout_1();
+        t_timeadd10s();
+        t_timeout();
 
         #300;
         $display("Simultaion Succeeded %t", $time);
