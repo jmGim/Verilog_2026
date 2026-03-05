@@ -2,7 +2,8 @@
 
 
 module uart_tx #(
-    parameter BPS = 9600  // tb : 10Mbps or 1Mbps - 시간 감축
+    parameter BPS = 100_000_000  // tb : 10Mbps or 1Mbps - 시간 감축
+    // parameter BPS = 100_000_000
     )(
     input clk,
     input reset,
@@ -20,17 +21,13 @@ module uart_tx #(
     parameter S_START_BIT = 2'b01;
     parameter S_DATA_8BITS = 2'b10;
     parameter S_STOP_BIT = 2'b11;
-
-    // 9600 * 16 = 153_600
-    // 100_000_000Hz  / 153_600  = 651 ns로 Sampling 할 것
-    parameter integer DIVIDER_CNT = 100_000_000 / BPS / 16;   // 100M /  9600 / 16 = 651
+    parameter DIVIDER_CNT = 100_000_000 / BPS;   // 100M /  9600 = 1041.6
 
     reg [1:0] r_state;  // state transition
-    reg [3:0] r_bit_cnt;  //r_data_reg에 저장할 Index 값
-    reg [7:0] r_data_reg;  // tx포트로 보낼 bit를 담는 용도
-    reg [15:0] r_baud_cnt;  // 9600 / 16 sampling 간격
+    reg [3:0] r_bit_cnt;  // 전송 bit cnt
+    reg [7:0] r_data_reg;  // 전송할 1 byte
+    reg [15:0] r_baud_cnt;  // 10416ns
     reg r_baud_tick;   // 10416ns 마다 1 tick 발생용
-    // reg [3:0] r_baud_tick_cnt;    // 16개 오버 샘플링 count
 
     // 10416ns 마다 1tick 발생 -==> r_baud_tick
     always @ (posedge clk, posedge reset) begin
@@ -38,7 +35,7 @@ module uart_tx #(
             r_baud_cnt <= 0;
             r_baud_tick <= 0;
         end else begin
-            if (r_baud_cnt >= DIVIDER_CNT) begin
+            if (r_baud_cnt == DIVIDER_CNT) begin
                 r_baud_cnt <= 0;
                 r_baud_tick <= 1;
             end else begin
@@ -64,7 +61,7 @@ module uart_tx #(
                         r_state <= S_START_BIT;
                         r_data_reg <= tx_data;
                         tx_busy <= 1'b1;
-                        r_bit_cnt <= 0;
+                        r_bit_cnt <= 4'd0;
                     end
                 end
   
@@ -78,7 +75,7 @@ module uart_tx #(
                 S_DATA_8BITS: begin 
                     if (r_baud_tick) begin
                        tx <= r_data_reg[r_bit_cnt]; 
-                       if ( r_bit_cnt == 4'd7) begin
+                       if ( r_bit_cnt == 7) begin
                             r_state <= S_STOP_BIT;
                         end else begin
                             r_bit_cnt <= r_bit_cnt + 1;

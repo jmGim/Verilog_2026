@@ -4,18 +4,23 @@
 - LSB부터 전송 (1 to 2 : )
 - Paritiy Check ( PC to PC)
 
-### 장점
+
+
+## 장점
 -- MCU / 센서 등 널리쓰임. 
 -- 클록 불필요 (비동기)
 -- 회로가 간단.
 
-### 단점
+
+
+## 단점
 -- TCP/IP Ethenet 통신 보단 느림.
 -- 송수신 속도 정확히 맞춰야 함. 
 -- 1:1 통신만 가능 (다중 노드 통신 어려움)
 
 
-### 구동 원리
+
+## 구동 원리
 - start bit = 0 , stop bit = 1 fix
 - 100MHz -> 9600Hz 로 분주
     -- 100MHz / 9600Hz - 10416.666ns = 10.416us 마다 1bit 보내면 됨.
@@ -27,12 +32,14 @@
     -- 100MHz의 1주기 10ns가 868번 반복하면 됨.
     
 
+
 - baud rate vs bps : 1초당 비트가 변하는 수 vs 1초당 비트가 전송되는 수.
 
 
 
 
-### Block Diagram
+
+## Block Diagram
 
 ![UART Block Diagram Top](sART Block Diagram Top.png)
 ![UART Block Diagram uart_controller](UART Block Diagram uart_controller.png)
@@ -46,4 +53,11 @@
 - 외부에서 온 tx_data를 r_reg_data로 저장함.
 
 - data_sender에서 9600/10 = 960자 보낼 수 있음.
-![UART FSM](UART FSM.png)
+![UART Tx FSM](UART Tx FSM.png)
+
+![UART Rx FSM](UART Rx FSM.png)
+
+
+
+
+<!-- ![tb_uart_rx simulation result](tb_uart_rx simulation result.png) -->
