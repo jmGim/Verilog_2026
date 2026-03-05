@@ -66,12 +66,14 @@ module control_tower(
             // led0on 비교 (마지막 6글자 확인)
             if (cq_string[47:0] == LED0ON) begin
                 led[0] <= 1'b1;
-                cq_string <= 0;
+                queue[0] <= 0; queue[1] <= 0; queue[2] <= 0; queue[3] <= 0;
+                queue[4] <= 0; queue[5] <= 0; queue[6] <= 0; queue[7] <= 0;
             end 
             // led0off 비교 (마지막 7글자 확인)
             else if (cq_string == LED0OFF) begin
                 led[0] <= 1'b0;
-                cq_string <= 0;
+                queue[0] <= 0; queue[1] <= 0; queue[2] <= 0; queue[3] <= 0;
+                queue[4] <= 0; queue[5] <= 0; queue[6] <= 0; queue[7] <= 0;
             end
         end
     end
