@@ -24,8 +24,8 @@ module control_tower(
 
     reg [55:0] char_buffer; // 2바이트 저장 공간
 
-    parameter [47:0] led0on = {8'h6E, 8'h6F, 8'h30, 8'h64, 8'h65, 8'h6C };
-    parameter [55:0] led0off = {8'h66, 8'h66, 8'h6F, 8'h30, 8'h64, 8'h65, 8'h6C };
+    // parameter [47:0] led0on = {8'h6E, 8'h6F, 8'h30, 8'h64, 8'h65, 8'h6C };
+    // parameter [55:0] led0off = {8'h66, 8'h66, 8'h6F, 8'h30, 8'h64, 8'h65, 8'h6C };
 
 
 
@@ -34,13 +34,11 @@ module control_tower(
     // 1. 문자열 파라미터 정의 (ASCII 값으로 정정 및 비트 수 지정)
     // "led0on"  : l(6C), e(65), d(64), 0(30), o(6F), n(6E) -> 6 bytes (48 bits)
     // "led0off" : l(6C), e(65), d(64), 0(30), o(6F), f(66), f(66) -> 7 bytes (56 bits)
-    // parameter [47:0] LED0ON  = {8'h6C, 8'h65, 8'h64, 8'h30, 8'h6F, 8'h6E}; 
-    // parameter [55:0] LED0OFF = {8'h6C, 8'h65, 8'h64, 8'h30, 8'h6F, 8'h66, 8'h66};
+    parameter [47:0] LED0ON  = {8'h6C, 8'h65, 8'h64, 8'h30, 8'h6F, 8'h6E}; 
+    parameter [55:0] LED0OFF = {8'h6C, 8'h65, 8'h64, 8'h30, 8'h6F, 8'h66, 8'h66};
 
     // 2. Circular Queue용 변수 추가
-    // reg [7:0] queue [0:7];    // 8칸짜리 1바이트 큐
-    reg [7:0] queue [7:0];    // 8칸짜리 1바이트 큐
-
+    reg [7:0] queue [0:7];    // 8칸짜리 1바이트 큐
     reg [2:0] cq_ptr = 0;     // 쓰기 포인터
 
     // 3. 비교를 위한 가상 윈도우 (큐의 내용을 일렬로 나열)
@@ -61,20 +59,19 @@ module control_tower(
             queue[4] <= 0; queue[5] <= 0; queue[6] <= 0; queue[7] <= 0;
         end else if (rx_done) begin
             // 큐에 데이터 저장 및 포인터 이동
-            // if (((cq_ptr + 1) % 8 ) == 0 )
-            //     led[7:0] = 1;
-
             queue[cq_ptr] <= rx_data; 
             cq_ptr <= cq_ptr + 1;
 
             // 문자열 전체 비교 (cq_string의 상위/하위 비트를 이용)
             // led0on 비교 (마지막 6글자 확인)
-            if (cq_string[47:0] == led0on) begin
+            if (cq_string[47:0] == LED0ON) begin
                 led[0] <= 1'b1;
+                cq_string <= 0;
             end 
             // led0off 비교 (마지막 7글자 확인)
-            else if (cq_string == led0off) begin
+            else if (cq_string == LED0OFF) begin
                 led[0] <= 1'b0;
+                cq_string <= 0;
             end
         end
     end
