@@ -4,49 +4,33 @@ module dht11 (
     input clk,
     input reset,
     
-    inout dht11_data,    // 센서 데이터 핀 하나로 입출력 모두 수행
+    inout dht11_data,
 
-    output [7:0] humidity,
-    output [7:0] temperature,
-    output data_valid   // 데이터 정상 수신 시 1클럭 펄스 발생 (UART 전송 트리거)
+    output reg [7:0] humidity,
+    output reg [7:0] temperature,
+    output reg data_valid   
 );
 
-    parameter S_IDLE = 3'b000,
-              S_ENQ  = 3'b001,             
-              S_MCU_PULLUP_40US = 3'b010,  
-              S_DHT_ACK_80US = 3'b011,     
-              S_DHT_PULLUP_80US = 3'b100,  
-              S_READ_DATA = 3'b101,
-              S_CHECKSUM = 3'b110;         // 체크섬 검증용 상태 추가
+    parameter S_IDLE            = 3'd0;
+    parameter S_REQ_LOW_18MS    = 3'd1;
+    parameter S_WAIT_ACK_20US   = 3'd2;
+    parameter S_ACK_LOW_80US    = 3'd3;
+    parameter S_ACK_HIGH_80US   = 3'd4;
+    parameter S_READ_DATA       = 3'd5;
+    parameter S_CHECKSUM        = 3'd6;
 
-    parameter WAIT_POSEDGE = 2'b01,
-              WAIT_NEGEDGE = 2'b10;
+    parameter S_WAIT_POSEDGE = 1'b0;
+    parameter S_WAIT_NEGEDGE = 1'b1;
 
     reg [2:0] r_state;
-    reg [2:0] read_state;
-    reg [9:0] r_1us_counter;
+    reg r_read_state;
+    reg [5:0] r_bit_cnt;
+    reg [21:0] r_wait_cnt;     // 최대 3초 (3,000,000 us) 대기용
+    reg [39:0] r_dht_data_reg;
     
-    reg [7:0] r_humidity;
-    reg [7:0] r_temperature;
-    reg r_data_valid;   // 데이터 정상 수신 시 1클럭 펄스 발생 (UART 전송 트리거)
-
-    // 요청하신 제어용 내부 변수 선언
-    reg r_io_mode;
-    reg r_o_data;
-    wire i_data;
-    
-    // inout 포트 내부 할당
-    assign dht11_data = r_io_mode ? 1'bz : r_o_data;
-    assign i_data = dht11_data;
-
+    // --- [1. 멈추지 않는 1us 타이머 생성 (100MHz 기준)] ---
     reg [6:0] r_clk_1us_cnt;        
     reg tick_1us;                   
-
-    reg [31:0] r_wait_counter;      
-    reg [5:0]  r_bit_idx;           
-    reg [39:0] r_dht_data_reg;      
-
-    // 1us Tick Generator
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             r_clk_1us_cnt <= 0;
@@ -55,116 +39,148 @@ module dht11 (
             if (r_clk_1us_cnt >= 7'd99) begin 
                 r_clk_1us_cnt <= 0;
                 tick_1us <= 1'b1;
-            end else begin
+            end else begin 
                 r_clk_1us_cnt <= r_clk_1us_cnt + 1;
                 tick_1us <= 1'b0;
             end
         end
     end
 
-    // 메인 상태 머신
+    // --- [2. Inout 핀 제어 (Open-Drain 방식)] ---
+    reg dht_drive;
+    // dht_drive가 1이면 MCU가 LOW로 강제로 끌어내림, 0이면 선을 놓음(High-Z)
+    assign dht11_data = dht_drive ? 1'b0 : 1'bz; 
+
+    // 입력 신호 동기화 및 엣지(Edge) 검출 (글리치 방지)
+    reg d1_data, d2_data;
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            d1_data <= 1'b1;
+            d2_data <= 1'b1;
+        end else begin
+            d1_data <= dht11_data; 
+            d2_data <= d1_data;
+        end
+    end
+    wire falling_edge = (d2_data == 1'b1 && d1_data == 1'b0);
+    wire rising_edge  = (d2_data == 1'b0 && d1_data == 1'b1);
+
+    // --- [3. 메인 FSM] ---
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             r_state <= S_IDLE;
-            read_state <= WAIT_POSEDGE;
-            
-            r_wait_counter <= 0;
-            r_1us_counter <= 0;
-            r_bit_idx <= 0;
+            r_read_state <= S_WAIT_POSEDGE;
+            dht_drive <= 1'b0; // 초기값은 0 (High-Z)
+            r_wait_cnt <= 0; 
+            r_bit_cnt <= 0; 
             r_dht_data_reg <= 0;
-            
-            r_io_mode <= 1'b1; 
-            r_o_data <= 1'b1;
-            
-            r_humidity <= 0;
-            r_temperature <= 0;
-            r_data_valid <= 0;
+            humidity <= 0; 
+            temperature <= 0;
+            data_valid <= 0;
         end else begin
-            r_data_valid <= 1'b0; // 매 클럭 초기화 (1클럭 펄스 유지를 위함)
+            data_valid <= 1'b0; // 매 클럭마다 초기화 (1클럭 펄스 유지용)
             
+            // [핵심] Enable 없이 무조건 카운트 증가. 
+            // 상태가 바뀔 때(이벤트 발생 시) 0으로 리셋하여 시간을 측정함.
             if (tick_1us) begin
-                case (r_state)
-                    S_IDLE: begin
-                        r_io_mode <= 1'b1; 
-                        r_wait_counter <= r_wait_counter + 1;
-                        r_bit_idx <= 0;
-                        
-                        // 2초마다 자동으로 온도/습도 스캔
-                        if (r_wait_counter >= 32'd2_000_000) begin 
-                            r_wait_counter <= 0;
-                            r_state <= S_ENQ;
-                        end
-                    end
-
-                    S_ENQ: begin
-                        r_io_mode <= 1'b0; 
-                        r_o_data <= 1'b0;  
-                        r_wait_counter <= r_wait_counter + 1;
-                        if (r_wait_counter >= 32'd18_000) begin 
-                            r_wait_counter <= 0;
-                            r_state <= S_MCU_PULLUP_40US;
-                        end
-                    end
-
-                    S_MCU_PULLUP_40US: begin
-                        r_io_mode <= 1'b1; 
-                        if (i_data == 1'b0) r_state <= S_DHT_ACK_80US;
-                    end
-
-                    S_DHT_ACK_80US: begin
-                        if (i_data == 1'b1) r_state <= S_DHT_PULLUP_80US;
-                    end
-
-                    S_DHT_PULLUP_80US: begin
-                        if (i_data == 1'b0) begin
-                            r_state <= S_READ_DATA;
-                            read_state <= WAIT_POSEDGE;
-                        end
-                    end
-
-                    S_READ_DATA: begin
-                        case (read_state)
-                            WAIT_POSEDGE: begin
-                                if (i_data == 1'b1) begin
-                                    r_1us_counter <= 0;
-                                    read_state <= WAIT_NEGEDGE; 
-                                end
-                            end
-                            WAIT_NEGEDGE: begin
-                                r_1us_counter <= r_1us_counter + 1;
-                                if (i_data == 1'b0) begin
-                                    // 40비트 데이터 순차 저장
-                                    r_dht_data_reg[39 - r_bit_idx] <= (r_1us_counter > 10'd45) ? 1'b1 : 1'b0;
-                                    
-                                    if (r_bit_idx >= 6'd39) begin
-                                        r_state <= S_CHECKSUM; // 40비트 수신 완료 시 검증 단계로
-                                    end else begin
-                                        r_bit_idx <= r_bit_idx + 1;
-                                        read_state <= WAIT_POSEDGE; 
-                                    end
-                                end
-                            end
-                        endcase
-                    end
-
-                    S_CHECKSUM: begin
-                        // Checksum 로직: 4개의 8비트 데이터를 더한 값이 마지막 8비트(체크섬)와 일치하는지 확인
-                        if ((r_dht_data_reg[39:32] + r_dht_data_reg[31:24] + r_dht_data_reg[23:16] + r_dht_data_reg[15:8]) == r_dht_data_reg[7:0]) begin
-                            r_humidity <= r_dht_data_reg[39:32];
-                            r_temperature <= r_dht_data_reg[23:16];
-                            r_data_valid <= 1'b1; // 정상일 때만 전송 트리거 발동
-                        end
-                        r_state <= S_IDLE; 
-                    end
-
-                    default: r_state <= S_IDLE;
-                endcase
+                r_wait_cnt <= r_wait_cnt + 1; 
             end
+
+            case (r_state)
+                S_IDLE: begin
+                    dht_drive <= 1'b0; // 선을 놓음 (High-Z)
+                    if (r_wait_cnt >= 22'd3_000_000) begin // 3초 대기
+                        r_wait_cnt <= 0; // 상태 전환 시 카운터 리셋
+                        r_state <= S_REQ_LOW_18MS; 
+                    end
+                end
+
+                S_REQ_LOW_18MS: begin
+                    dht_drive <= 1'b1; // MCU가 LOW 출력 (Start 신호)
+                    if (r_wait_cnt >= 22'd20_000) begin // 20ms 유지
+                        r_wait_cnt <= 0;
+                        dht_drive <= 1'b0; // MCU가 선을 놓음
+                        r_state <= S_WAIT_ACK_20US;
+                    end
+                end
+
+                S_WAIT_ACK_20US: begin
+                    if (falling_edge) begin // DHT11이 응답하여 LOW로 끌어내림
+                        r_wait_cnt <= 0;
+                        r_state <= S_ACK_LOW_80US;
+                    end else if (r_wait_cnt > 22'd100) begin // 타임아웃 (에러 방지)
+                        r_wait_cnt <= 0;
+                        r_state <= S_IDLE;
+                    end
+                end
+
+                S_ACK_LOW_80US: begin
+                    if (rising_edge) begin // DHT11이 HIGH로 올림 (80us 통과)
+                        r_wait_cnt <= 0;
+                        r_state <= S_ACK_HIGH_80US;
+                    end else if (r_wait_cnt > 22'd150) begin // 타임아웃
+                        r_wait_cnt <= 0;
+                        r_state <= S_IDLE;
+                    end
+                end
+
+                S_ACK_HIGH_80US: begin
+                    if (falling_edge) begin // 데이터 전송 시작 (다시 LOW)
+                        r_wait_cnt <= 0;
+                        r_bit_cnt <= 0;
+                        r_read_state <= S_WAIT_POSEDGE;
+                        r_state <= S_READ_DATA;
+                    end else if (r_wait_cnt > 22'd150) begin // 타임아웃
+                        r_wait_cnt <= 0;
+                        r_state <= S_IDLE;
+                    end
+                end
+
+                S_READ_DATA: begin
+                    case (r_read_state) 
+                        S_WAIT_POSEDGE : begin
+                            if (rising_edge) begin // 50us LOW 구간 끝
+                                r_wait_cnt <= 0; // HIGH 구간 길이를 재기 위해 리셋
+                                r_read_state <= S_WAIT_NEGEDGE;
+                            end else if (r_wait_cnt > 22'd100) begin
+                                r_wait_cnt <= 0;
+                                r_state <= S_IDLE;
+                            end
+                        end
+
+                        S_WAIT_NEGEDGE : begin
+                            if (falling_edge) begin // HIGH 구간 끝
+                                // HIGH 길이에 따라 0, 1 판별 후 Shift Register에 저장
+                                r_dht_data_reg <= {r_dht_data_reg[38:0], (r_wait_cnt > 22'd45) ? 1'b1 : 1'b0};
+                                r_bit_cnt <= r_bit_cnt + 1;
+                                r_wait_cnt <= 0; // 다음 비트를 위해 리셋
+                                
+                                if (r_bit_cnt >= 6'd39) begin
+                                    r_state <= S_CHECKSUM;
+                                end else begin
+                                    r_read_state <= S_WAIT_POSEDGE;
+                                end
+                            end else if (r_wait_cnt > 22'd150) begin // 1이 너무 길면 오류
+                                r_wait_cnt <= 0;
+                                r_state <= S_IDLE;
+                            end
+                        end 
+                    endcase
+                end
+
+                S_CHECKSUM: begin
+                    // 데이터 무결성 검증
+                    if ((r_dht_data_reg[39:32] + r_dht_data_reg[31:24] + r_dht_data_reg[23:16] + r_dht_data_reg[15:8]) == r_dht_data_reg[7:0]) begin
+                        humidity <= r_dht_data_reg[39:32];
+                        temperature <= r_dht_data_reg[23:16];
+                        data_valid <= 1'b1; // 완벽한 데이터일 때만 UART 트리거!
+                    end
+                    r_wait_cnt <= 0;
+                    r_state <= S_IDLE; 
+                end
+                
+                default: r_state <= S_IDLE;
+            endcase
         end
     end
-
-    assign humidity = r_humidity;
-    assign temperature = r_temperature;
-    assign data_valid = r_data_valid;
-
 endmodule

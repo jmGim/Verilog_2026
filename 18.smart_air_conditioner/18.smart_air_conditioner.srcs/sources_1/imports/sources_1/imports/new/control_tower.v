@@ -8,8 +8,8 @@ module control_tower(
     input [7:0] rx_data,  // UART 8bit data
     input rx_done,  // 1byte data arrive → 1
 
-    output [13:0] seg_data,
-    output reg [15:0] led
+    output [13:0] seg_data
+    // output reg [15:0] led
     );
     // mode define 
     parameter UP_COUNTER = 3'b01;
@@ -53,7 +53,7 @@ module control_tower(
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             cq_ptr <= 0;
-            led[0] <= 0;
+            // led[0] <= 0;
             // 큐 초기화 (옵션)
             queue[0] <= 0; queue[1] <= 0; queue[2] <= 0; queue[3] <= 0;
             queue[4] <= 0; queue[5] <= 0; queue[6] <= 0; queue[7] <= 0;
@@ -65,13 +65,13 @@ module control_tower(
             // 문자열 전체 비교 (cq_string의 상위/하위 비트를 이용)
             // led0on 비교 (마지막 6글자 확인)
             if (cq_string[47:0] == LED0ON) begin
-                led[0] <= 1'b1;
+                // led[0] <= 1'b1;
                 queue[0] <= 0; queue[1] <= 0; queue[2] <= 0; queue[3] <= 0;
                 queue[4] <= 0; queue[5] <= 0; queue[6] <= 0; queue[7] <= 0;
             end 
             // led0off 비교 (마지막 7글자 확인)
             else if (cq_string == LED0OFF) begin
-                led[0] <= 1'b0;
+                // led[0] <= 1'b0;
                 queue[0] <= 0; queue[1] <= 0; queue[2] <= 0; queue[3] <= 0;
                 queue[4] <= 0; queue[5] <= 0; queue[6] <= 0; queue[7] <= 0;
             end
@@ -145,7 +145,8 @@ module control_tower(
                 // led[15:14] <= SLIDE_SW_READ;
             end 
             default: 
-                 led[15:14] <= 2'b00;
+                //  led[15:14] <= 2'b00;
+                ;
         endcase
     end 
 
